@@ -1,0 +1,8 @@
+[package]
+name = "isbn-barcode-convert"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "isbnconv"
+path = "src/main.rs"
