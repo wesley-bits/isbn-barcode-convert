@@ -16,11 +16,12 @@ pure checksum arithmetic.
 
 ```
 isbnconv <isbn> [--lenient]
-isbnconv --check <isbn> [--lenient]
+isbnconv --check <isbn|upc-a|ean-8> [--lenient]
 ```
 
-The source format (ISBN-10 vs ISBN-13) is detected from how many digits
-the input has after stripping hyphens and spaces.
+The format is detected from how many digits the input has after
+stripping hyphens and spaces: 10 or 13 for an ISBN, 12 for a UPC-A
+barcode, 8 for an EAN-8 barcode.
 
 ```
 $ isbnconv 0-262-01153-0
@@ -31,6 +32,18 @@ $ isbnconv 978-0-262-01153-0
 
 $ isbnconv --check 0-262-01153-0
 valid
+```
+
+UPC-A and EAN-8 use the same weighted-sum checksum family as an ISBN-13
+barcode, but they aren't ISBNs and have no 10-digit form, so `--check`
+is the only thing that applies to them:
+
+```
+$ isbnconv --check 036000291452
+valid
+
+$ isbnconv --check 40170724
+invalid: checksum digit is wrong: expected 5, found 4 (use --lenient to repair it)
 ```
 
 ### Strict by default
@@ -72,9 +85,11 @@ cargo build --release
 ## Status
 
 Early skeleton. ISBN-10 and ISBN-13 conversion and validation work.
-Not yet covered: other barcode families (UPC-A, EAN-8), batch/file
-input, and a proper test suite beyond the handful of unit tests in
-`src/isbn.rs`.
+UPC-A and EAN-8 checksums can be checked (and repaired with
+`--lenient`) but not converted, since neither has an ISBN equivalent.
+Not yet covered: batch/file input, a `--format` flag for grouped
+hyphenation, and a proper test suite beyond the unit tests in
+`src/isbn.rs` and `src/barcode.rs`.
 
 ## License
 
