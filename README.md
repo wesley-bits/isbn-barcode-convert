@@ -17,6 +17,7 @@ pure checksum arithmetic.
 ```
 isbnconv <isbn> [--lenient]
 isbnconv --check <isbn|upc-a|ean-8> [--lenient]
+isbnconv --file <path> [--check] [--lenient]
 ```
 
 The format is detected from how many digits the input has after
@@ -74,6 +75,30 @@ the wrong number of digits, letters other than a trailing `X`, or a
 no ISBN-10 form at all — that prefix was introduced after ISBN-10 was
 retired, and no amount of leniency invents one).
 
+### Batch conversion
+
+`--file` reads one number per line (any of the formats above, mixed
+freely) and processes each line on its own, so one bad line doesn't
+stop the rest:
+
+```
+$ cat numbers.txt
+0-262-01153-0
+978-0-13-468599-1
+0-262-01153-1
+
+$ isbnconv --file numbers.txt
+0-262-01153-0: 9780262011530
+978-0-13-468599-1: 0134685997
+line 3: 0-262-01153-1: error: checksum digit is wrong: expected 0, found 1 (use --lenient to repair it)
+```
+
+The exit code is nonzero if any line failed, so `--file` still works as
+a pass/fail gate in a script even though it doesn't stop at the first
+bad line. Combine with `--check` to validate a whole file instead of
+converting it, and with `--lenient` to repair every bad check digit
+found along the way. Blank lines are skipped.
+
 ## Building
 
 Standard library only, no external crates:
@@ -84,12 +109,12 @@ cargo build --release
 
 ## Status
 
-Early skeleton. ISBN-10 and ISBN-13 conversion and validation work.
-UPC-A and EAN-8 checksums can be checked (and repaired with
-`--lenient`) but not converted, since neither has an ISBN equivalent.
-Not yet covered: batch/file input, a `--format` flag for grouped
-hyphenation, and a proper test suite beyond the unit tests in
-`src/isbn.rs` and `src/barcode.rs`.
+Early skeleton. ISBN-10 and ISBN-13 conversion and validation work,
+including batch conversion of a whole file with `--file`. UPC-A and
+EAN-8 checksums can be checked (and repaired with `--lenient`) but not
+converted, since neither has an ISBN equivalent. Not yet covered: a
+`--format` flag for grouped hyphenation, and a proper test suite beyond
+the unit tests in `src/isbn.rs` and `src/barcode.rs`.
 
 ## License
 
